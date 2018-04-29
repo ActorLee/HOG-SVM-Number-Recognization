@@ -81,9 +81,8 @@ Mat image_processing_mat(Mat path) {
 	img_start = clock();
 	vector<vector<int>> a;
 	Mat imag, result;
-	imag = path;   //½«¶ÁÈëµÄ²ÊÉ«Í¼ÏñÖ±½ÓÒÔ»Ò¶ÈÍ¼Ïñ¶ÁÈë  
-	result = imag.clone();
-	//½øĞĞ¶şÖµ»¯´¦Àí£¬Ñ¡Ôñ30£¬200.0ÎªãĞÖµ  
+	imag = path;    
+	result = imag.clone();  
 	threshold(imag, result, 30, 1.0, CV_THRESH_BINARY);
 	for (int i = 0; i < result.rows; i++)
 	{
@@ -137,7 +136,7 @@ vector<float>  hog_path(string path) {
 	Mat a = image_processing(path);
 	Mat src = a;
 	src=gray(src);
-	vector<float> descriptors;//HOGÃèÊö×ÓÏòÁ¿
+	vector<float> descriptors;//HOGæè¿°å­å‘é‡
 	hog.compute(src, descriptors);
 	hog_dim = descriptors.size();
 	return descriptors;
@@ -149,7 +148,7 @@ vector<float>  hog_mat(Mat img) {
 	HOGDescriptor hog(Size(w, h), Size(blocksize_w, blocksize_h), Size(b_stride_w, b_stride_h), Size(cellsize_w, cellsize_h), nbins);
 	Mat a = image_processing_mat(img);
 	Mat src = gray(a);
-	vector<float> descriptors;//HOGÃèÊö×ÓÏòÁ¿
+	vector<float> descriptors;//HOGæè¿°å­å‘é‡
 	hog.compute(src, descriptors);
 	hog_dim = descriptors.size();
 	return descriptors;
