@@ -23,8 +23,9 @@ int b_stride_w = 8;
 int b_stride_h = 8;
 int cellsize_w = 8;
 int cellsize_h = 8;
-int varcount = 0;
+
 int hog_dim = nbins*((w -blocksize_w) / b_stride_w + 1)*((h - blocksize_h) / b_stride_h + 1)*(blocksize_w / cellsize_w)*(blocksize_h/ cellsize_h);
+int varcount = hog_dim;
 
 vector<vector<double>> svm_sv(45, vector<double>(varcount));
 vector<double> svm_rho(45);
@@ -57,7 +58,7 @@ vector<float> get_cell_hog(Mat img,int nbins) {
 			Gx = img.at<float>(i, j + 1) - img.at<float>(i, j - 1);
 			Gy = img.at<float>(i + 1, j) - img.at<float>(i - 1, j);
 
-			gradient= sqrt(Gx * Gx + Gy * Gy);//Ìİ¶ÈÄ£Öµ  
+			gradient= sqrt(Gx * Gx + Gy * Gy);//æ¢¯åº¦æ¨¡å€¼  
 
            if (float(atan2(Gy, Gx) * 180 / CV_PI) >= 0) {
 				theta= float(atan2(Gy, Gx) * 180 / CV_PI);
@@ -70,7 +71,7 @@ vector<float> get_cell_hog(Mat img,int nbins) {
 					cell_hog[i] += gradient;
 				}
 			}	
-			//Ìİ¶È·½Ïò[-180¡ã£¬180¡ã]  
+			//æ¢¯åº¦æ–¹å‘[-180Â°ï¼Œ180Â°]  
 		}
 	}
 	
@@ -160,9 +161,9 @@ Mat image_processing_mat(Mat path) {
 	img_start = clock();
 	vector<vector<int>> a;
 	Mat imag, result;
-	imag = path;   //½«¶ÁÈëµÄ²ÊÉ«Í¼ÏñÖ±½ÓÒÔ»Ò¶ÈÍ¼Ïñ¶ÁÈë  
+	imag = path;   //å°†è¯»å…¥çš„å½©è‰²å›¾åƒç›´æ¥ä»¥ç°åº¦å›¾åƒè¯»å…¥  
 	result = imag.clone();
-	//½øĞĞ¶şÖµ»¯´¦Àí£¬Ñ¡Ôñ30£¬200.0ÎªãĞÖµ  
+	//è¿›è¡ŒäºŒå€¼åŒ–å¤„ç†ï¼Œé€‰æ‹©30ï¼Œ200.0ä¸ºé˜ˆå€¼  
 	threshold(imag, result, 30, 1.0, CV_THRESH_BINARY);
 	for (int i = 0; i < result.rows; i++)
 	{
@@ -210,7 +211,7 @@ Mat image_processing_mat(Mat path) {
 	Mat a = image_processing(path);
 	Mat src = a;
 	src=gray(src);
-	vector<float> descriptors;//HOGÃèÊö×ÓÏòÁ¿
+	vector<float> descriptors;//HOGæè¿°å­å‘é‡
 	hog.compute(src, descriptors);
 	hog_dim = descriptors.size();
 	return descriptors;
@@ -222,7 +223,7 @@ vector<float>  hog_mat(Mat img) {
 	HOGDescriptor hog(Size(w, h), Size(blocksize_w, blocksize_h), Size(b_stride_w, b_stride_h), Size(cellsize_w, cellsize_h), nbins);
 	Mat a = image_processing_mat(img);
 	Mat src = gray(a);
-	vector<float> descriptors;//HOGÃèÊö×ÓÏòÁ¿
+	vector<float> descriptors;//HOGæè¿°å­å‘é‡
 	hog.compute(src, descriptors);
 	hog_dim = descriptors.size();
 	return descriptors;
@@ -276,17 +277,17 @@ int  train() {
 
 vector<vector<double>> load_svm_sv()
 {
-	TiXmlDocument mydoc("D:\\datasets\\number\\Detect.xml");//xmlÎÄµµ¶ÔÏó  
-	bool loadOk = mydoc.LoadFile();//¼ÓÔØÎÄµµ  
+	TiXmlDocument mydoc("D:\\datasets\\number\\Detect.xml");//xmlæ–‡æ¡£å¯¹è±¡  
+	bool loadOk = mydoc.LoadFile();//åŠ è½½æ–‡æ¡£  
 	if (!loadOk)
 	{
 		cout << "could not load the test file.Error:" << mydoc.ErrorDesc() << endl;
 		exit(1);
 	}
 
-	TiXmlElement *RootElement = mydoc.RootElement();  //¸ùÔªËØ, Info  
+	TiXmlElement *RootElement = mydoc.RootElement();  //æ ¹å…ƒç´ , Info  
 	TiXmlElement *pEle = RootElement;
-	TiXmlElement *StuElement = pEle->FirstChildElement();//µÚÒ»¸ö×ÓÔªËØ  
+	TiXmlElement *StuElement = pEle->FirstChildElement();//ç¬¬ä¸€ä¸ªå­å…ƒç´   
 
 	for (TiXmlElement *sonElement = StuElement->FirstChildElement(); sonElement; sonElement = sonElement->NextSiblingElement())
 	{
@@ -299,8 +300,6 @@ vector<vector<double>> load_svm_sv()
 
 	vector<vector<double>> spport_vector(45, vector<double>(varcount));
 	int index_sv = 0;
-	vector<double> rho(45);
-
 
 	for (TiXmlElement *sonElement = StuElement->FirstChildElement(); sonElement; sonElement = sonElement->NextSiblingElement())
 	{
@@ -320,16 +319,20 @@ vector<vector<double>> load_svm_sv()
 					{
 						num++;
 						index2 = i;
-						char *temp = new char[20];
-						strncpy_s(temp, 20, sv + index1, index2 - index1);
+						int len=index2-index1;
+                                           	char *temp=new char[len];
+                       				 for(int k=0;k<len;k++)
+						 {
+                         			 temp[k]=sv[index1+k];
+                       				 }
 						double a;
-						stringstream(temp) >> a;
+						a=atof(temp);
 						spport_vector[index_sv][num - 1] = a;
 						index1 = index2 + 1;
 						if (num == varcount - 1)
 						{
 							temp = sv + index2 + 1;
-							stringstream(temp) >> a;
+							a=atof(temp);
 							spport_vector[index_sv][num] = a;
 						}
 					}
@@ -344,17 +347,17 @@ vector<vector<double>> load_svm_sv()
 
 vector<double> load_svm_rho()
 {
-	TiXmlDocument mydoc("D:\\datasets\\number\\Detect.xml");//xmlÎÄµµ¶ÔÏó  
-	bool loadOk = mydoc.LoadFile();//¼ÓÔØÎÄµµ  
+	TiXmlDocument mydoc("D:\\datasets\\number\\Detect.xml");//xmlæ–‡æ¡£å¯¹è±¡  
+	bool loadOk = mydoc.LoadFile();//åŠ è½½æ–‡æ¡£  
 	if (!loadOk)
 	{
 		cout << "could not load the test file.Error:" << mydoc.ErrorDesc() << endl;
 		exit(1);
 	}
 
-	TiXmlElement *RootElement = mydoc.RootElement();  //¸ùÔªËØ, Info  
+	TiXmlElement *RootElement = mydoc.RootElement();  //æ ¹å…ƒç´ , Info  
 	TiXmlElement *pEle = RootElement;
-	TiXmlElement *StuElement = pEle->FirstChildElement();//µÚÒ»¸ö×ÓÔªËØ  
+	TiXmlElement *StuElement = pEle->FirstChildElement();//ç¬¬ä¸€ä¸ªå­å…ƒç´   
 
 	for (TiXmlElement *sonElement = StuElement->FirstChildElement(); sonElement; sonElement = sonElement->NextSiblingElement())
 	{
@@ -379,7 +382,7 @@ vector<double> load_svm_rho()
 					if (string(node_df->Value()) == "rho")
 					{
 						double a;
-						stringstream(node_df->FirstChild()->Value()) >> a;
+						a=atof(node_df->FirstChild()->Value());
 						rho[num2 - 1] = a;
 					}
 				}
@@ -446,7 +449,7 @@ int detect(string path) {
 
 int main()
 {
-    cout << "hog_dim: " << hog_dim << endl;
+        cout << "hog_dim: " << hog_dim << endl;
 	clock_t  startTime, endTime;
 	double totaltime=0.000;
 	startTime = clock();
@@ -468,20 +471,20 @@ int main()
 	double alltime=0.000;
 	testData.open("D:\\datasets\\number\\test.txt");
 	while (getline(testData, line)) {
- startTime = clock();
-       detect("D:/datasets/number/all_pic/"+line);
-endTime = clock();
-alltime += double(endTime - startTime);
+	startTime = clock();
+        detect("D:/datasets/number/all_pic/"+line);
+	endTime = clock();
+	alltime += double(endTime - startTime);
 
 	}
 	
 	totaltime =(alltime-imgprocess_time_test) / CLOCKS_PER_SEC;	
 	cout << "load mode time: " <<loadTime<<"s"<< endl;
-	cout << "test time: " << totaltime-loadTime<<"s"<< endl;
+	cout << "test time: " << totaltime<<"s"<< endl;
 	cout << "image processiong time" << (imgprocess_time_train+imgprocess_time_test) / CLOCKS_PER_SEC <<"s"<< endl;
 	
-system("pause");
-return 0;
+       system("pause");
+       return 0;
 }
 
 
