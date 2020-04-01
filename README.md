@@ -1,1 +1,1 @@
-# Hog_Svm-Number-Recognization
+# HOG-SVM Number Recognization
